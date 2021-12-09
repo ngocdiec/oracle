@@ -20,5 +20,13 @@ cd /tmp/fbo_ggs_Linux_x64_shiphome/Disk1/
 ./runInstaller
 ```
 
-Đặt SourceDB chạy archivelog mode
-https://github.com/ngocdiec/oracle/blob/772b901560c7a12860dafbbeaa24bf4afdf1fc85/src/enable-archivelog-mode.sql#L1-L7
+Đặt SourceDB chạy archivelog mode:
+```sql
+--Kiểm tra lại log mode của DB:
+SELECT name, log_mode FROM v$database;
+
+SHUTDOWN immediate;
+STARTUP mount;
+ALTER DATABASE ARCHIVELOG;
+ALTER DATABASE OPEN;
+```
