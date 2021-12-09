@@ -1,6 +1,6 @@
 Push file to server
 ```console
-$ scp 191001_fbo_ggs_Linux_x64_shiphome.zip oracle@goldengate:/tmp
+scp 191001_fbo_ggs_Linux_x64_shiphome.zip oracle@goldengate:/tmp
 ```
 
 Login vào server bằng user oracle và thực hiện các lệnh sau
