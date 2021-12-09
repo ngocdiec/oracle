@@ -1,0 +1,2 @@
+# oracle
+Notes for Oracle
