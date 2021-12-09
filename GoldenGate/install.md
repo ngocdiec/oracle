@@ -300,3 +300,45 @@ MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
 
 add replicat apply1, integrated  exttrail ./dirdat/tr
 ```
+
+# Khởi tạo đồng bộ GoldenGate - No downtime
+## Đồng bộ metadata từ SourceDB sang TargetDB
+```bash
+# Trên SourceDB
+expdp directory=DUMPDIR dumpfile=meta.dmp logfile=meta.log schemas=VNPAYGW content=metadata_only
+
+# Trên TargetDB
+impdp directory=DUMPDIR dumpfile=meta.dmp logfile=meta.log
+```
+## Start tiến trình capture1 và pump1 trên SourceDB
+```bash
+cd $OGG_HOME
+./ggsci
+
+start extract capture1
+start extract pump1
+info all
+```
+
+## Kiểm tra số SCN hiện tại trên SourceDB
+```sql
+SELECT TO_CHAR (current_scn) FROM v$database;
+```
+## Tiến hành export data only sau khi có thông tin current SCN trên SourceDB
+```bash
+expdp directory=DUMPDIR dumpfile=dataonly.dmp logfile=dataonly.log schemas=VNPAYGW content=DATA_ONLY flashback_scn=CURRENT_SCN
+```
+## import data vừa được export vào TargetDB
+```bash
+impdp directory=DUMPDIR dumpfile=dataonly.dmp logfile=dataonly.log
+```
+## Start tiến trình apply1 trên TargetDB aftercsn CURRENT_SCN
+```bash
+cd $OGG_HOME
+./ggsci
+
+start replicat apply1, aftercsn CURRENT_SCN
+info all
+```
+
+:warning:Ngoại trừ primary key, ta nên disable tất cả constraint trên TargetDB. Có thể bỏ qua khi chỉ đồng bộ 1 chiều Uni-Directional Replication.
