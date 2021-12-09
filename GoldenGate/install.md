@@ -99,6 +99,27 @@ info credentialstore
 # test credentialstore
 dblogin useridalias ggsource
 ```
+Cấu hình tham số GLOBALS và MANAGER
+```bash
+cd $OGG_HOME
+./ggsci
+# GGSCI
+
+edit params ./GLOBALS
+GGSCHEMA GGADMIN
+CHECKPOINTTABLE     GGADMIN.checkpoint
+
+edit params mgr
+PORT 7809
+DYNAMICPORTLIST 7810-7820
+AUTOSTART ER *
+AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
+
+stop mgr
+start mgr
+info all
+```
 
 ### Trên TargetDB
 ```bash
@@ -133,4 +154,149 @@ info credentialstore
 
 # test credentialstore
 dblogin useridalias ggtarget
+```
+
+Cấu hình tham số GLOBALS và MANAGER
+```bash
+cd $OGG_HOME
+./ggsci
+# GGSCI
+
+edit params ./GLOBALS
+GGSCHEMA GGADMIN
+CHECKPOINTTABLE     GGADMIN.checkpoint
+
+edit params mgr
+PORT 7809
+DYNAMICPORTLIST 7810-7820
+AUTOSTART ER *
+AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
+
+stop mgr
+start mgr
+info all
+```
+
+# Tạo các tiến trình đồng bộ cho GoldenGate
+## Trên SourceDB
+### Đăng ký dữ liệu cần đồng bộ
+Có thể đăng ký tất các các table trong schema, hoặc chỉ định riêng từng table. Lựa chọn một trong hai cách sau:
+```bash
+cd $OGG_HOME
+./ggsci
+dblogin useridalias ggsource
+```
+
+```diff
+- text in red
++ text in green
+! text in orange
+# text in gray
+@@ text in purple (and bold)@@
+```
+Đăng ký theo schema (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
+```bash
+add schematrandata SCHEMA_NAME
+```
+
+Đăng ký theo table (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
+```bash
+# add tất cả các columns của table
+add trandata TABLE_NAME
+# add và chỉ định một số column
+add trandata TABLE_NAME COLS(colums)
+# add và loại trừ một số column
+add trandata TABLE_NAME COLSEXCEPT(colums)
+# add và chỉ định table không có PK
+add trandata TABLE_NAME NOKEY
+```
+Có một số yêu cầu mà bảng được đồng bộ phải đáp ứng:
+1. Bảng nên có Primary Key (PK), nếu không có PK thì có thể sử dụng column có độ distinct cao, tuy nhiên có thể phát sinh lỗi đồng bộ
+2. Không được update column là PK.
+
+### Tạo tiến trình integrated extract
+```bash
+cd $OGG_HOME
+./ggsci
+dblogin useridalias ggsource
+
+edit params capture1
+EXTRACT capture1
+useridalias ggsource
+EXTTRAIL ./dirdat/tr
+
+# Đăng ký tất cả bảng
+TABLE VNPAYGW.*;
+# Đăng ký cụ thể từng bảng
+TABLE VNPAYGW.TNX_DETAIL;
+# Đăng ký bảng theo điều kiện
+TABLE VNPAYGW.TERMINALS,COLSEXCEPT(PUBLIC_KEY, PRIVATE_KEY);
+TABLE VNPAYGW.TNX,COLSEXCEPT(CARD_NUMBER);
+
+GETAPPLOPS
+LOGALLSUPCOLS
+UPDATERECORDFORMAT COMPACT
+DDL INCLUDE MAPPED
+DDLOPTIONS REPORT
+DDLOptions AddTranData
+
+register extract capture1 database
+add extract capture1, integrated tranlog, begin now
+add exttrail ./dirdat/tr, extract capture1
+```
+### Tạo tiến trình pump
+```bash
+cd $OGG_HOME
+./ggsci
+dblogin useridalias ggsource
+
+edit params pump1
+EXTRACT pump1
+Passthru
+useridalias ggsource
+RMTHOST 192.168.1.102 , MGRPORT 7809
+RMTTRAIL ./dirdat/tr
+TABLE VNPAYGW.TERMINALS;
+TABLE VNPAYGW.TNX;
+TABLE VNPAYGW.TNX_DETAIL;
+LOGALLSUPCOLS
+DDL INCLUDE MAPPED
+DDLOPTIONS REPORT
+DDLOptions AddTranData
+
+add extract pump1, exttrailsource ./dirdat/tr, begin now
+add rmttrail ./dirdat/tr, extract pump1
+```
+
+## Trên TargetDB
+### Tạo tiến trình replicat
+```bash
+cd $OGG_HOME
+./ggsci
+dblogin useridalias ggsource
+
+edit params apply1
+REPLICAT apply1
+#DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
+DBOPTIONS NOSUPPRESSTRIGGERS
+#DDLOPTIONS USELOGINSCHEMA
+DDLERROR 1435 IGNORE INCLUDE OPTYPE ALTER OBJTYPE SESSION
+DDLERROR 2149 ignore
+USERIDALIAS ggtarget
+DISCARDFILE ./dirrpt/apply1.dsc,append,MEGABYTES 400
+ASSUMETARGETDEFS
+#SOURCEDEFS ./dirdef/source.def
+#TARGETDEFS ./dirdef/target.def
+HANDLECOLLISIONS
+
+# Đăng ký tất cả bảng
+MAP VNPAYGW.*, TARGET VNPAYGW.*;
+
+# Đăng ký cụ thể từng bảng
+MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
+MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
+MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
+
+add replicat apply1, integrated  exttrail ./dirdat/tr
 ```
