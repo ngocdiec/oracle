@@ -354,7 +354,7 @@ info all
 `Bổ sung index trên TargetDB`
 > Việc thêm index trên TargetDB không ảnh hưởng đến SourceDB và tiến trình đồng bộ.
 
-`Tiến trình Extract/Pump/Replicat bị treo (các lệnh stop tiến trình trả lỗi)`
+`Tiến trình Extract/Pump/Replicat bị treo (stop tiến trình trả lỗi)`
 > Sử dụng lệnh kill để tắt tiến trình, sau đó start lại tiến trình và kiểm tra việc đồng bộ.
 ```bash
 cd $OGG_HOME
