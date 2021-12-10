@@ -348,15 +348,19 @@ info all
 
 
 # Các tình huống vận hành GoldenGate
-1. Thay đổi cấu trúc trên SourceDB nhưng không tự apply
-Chạy các lệnh SQL để apply cấu trúc đã thay đổi lên TargetDB. Việc này không ảnh hưởng đến tiến trình đồng bộ.
-2. Bổ sung index trên TargetDB
-Việc thêm index trên TargetDB không ảnh hưởng đến SourceDB và tiến trình đồng bộ.
-3. Tiến trình Extract/Pump/Replicat bị treo (các lệnh stop tiến trình trả lỗi)
-Sử dụng lệnh kill để tắt tiến trình, sau đó start lại tiến trình và kiểm tra việc đồng bộ
+`Thay đổi cấu trúc trên SourceDB nhưng không tự apply`
+> Chạy các lệnh SQL để apply cấu trúc đã thay đổi lên TargetDB. Việc này không ảnh hưởng đến tiến trình đồng bộ.
+
+`Bổ sung index trên TargetDB`
+> Việc thêm index trên TargetDB không ảnh hưởng đến SourceDB và tiến trình đồng bộ.
+
+`Tiến trình Extract/Pump/Replicat bị treo (các lệnh stop tiến trình trả lỗi)`
+> Sử dụng lệnh kill để tắt tiến trình, sau đó start lại tiến trình và kiểm tra việc đồng bộ.
 ```bash
 cd $OGG_HOME
 ./ggsci
 
 kill replicat apply1
+start replicat apply1
+info all
 ```
