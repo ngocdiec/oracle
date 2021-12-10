@@ -217,28 +217,31 @@ Có một số yêu cầu mà bảng được đồng bộ phải đáp ứng:
 ```bash
 cd $OGG_HOME
 ./ggsci
-dblogin useridalias ggsource
-edit params capture1
 ```
 > ```sh
-> EXTRACT capture1
-> useridalias ggsource
-> EXTTRAIL ./dirdat/tr
-> 
-> # Đăng ký tất cả bảng
-> TABLE VNPAYGW.*;
-> # Đăng ký cụ thể từng bảng
-> TABLE VNPAYGW.TNX_DETAIL;
-> # Đăng ký bảng theo điều kiện
-> TABLE VNPAYGW.TERMINALS,COLSEXCEPT(PUBLIC_KEY, PRIVATE_KEY);
-> TABLE VNPAYGW.TNX,COLSEXCEPT(CARD_NUMBER);
-> 
-> GETAPPLOPS
-> LOGALLSUPCOLS
-> UPDATERECORDFORMAT COMPACT
-> DDL INCLUDE MAPPED
-> DDLOPTIONS REPORT
-> DDLOptions AddTranData
+> dblogin useridalias ggsource
+> edit params capture1
+> ```
+>> ```sh
+>> EXTRACT capture1
+>> useridalias ggsource
+>> EXTTRAIL ./dirdat/tr
+>> 
+>> # Đăng ký tất cả bảng
+>> TABLE VNPAYGW.*;
+>> # Đăng ký cụ thể từng bảng
+>> TABLE VNPAYGW.TNX_DETAIL;
+>> # Đăng ký bảng theo điều kiện
+>> TABLE VNPAYGW.TERMINALS,COLSEXCEPT(PUBLIC_KEY, PRIVATE_KEY);
+>> TABLE VNPAYGW.TNX,COLSEXCEPT(CARD_NUMBER);
+>> 
+>> GETAPPLOPS
+>> LOGALLSUPCOLS
+>> UPDATERECORDFORMAT COMPACT
+>> DDL INCLUDE MAPPED
+>> DDLOPTIONS REPORT
+>> DDLOptions AddTranData
+>> ```
 
 ```bash
 register extract capture1 database
@@ -250,22 +253,24 @@ add exttrail ./dirdat/tr, extract capture1
 ```bash
 cd $OGG_HOME
 ./ggsci
-dblogin useridalias ggsource
-edit params pump1
 ```
 > ```sh
-> EXTRACT pump1
-> Passthru
-> useridalias ggsource
-> RMTHOST 192.168.1.102 , MGRPORT 7809
-> RMTTRAIL ./dirdat/tr
-> TABLE VNPAYGW.TERMINALS;
-> TABLE VNPAYGW.TNX;
-> TABLE VNPAYGW.TNX_DETAIL;
-> LOGALLSUPCOLS
-> DDL INCLUDE MAPPED
-> DDLOPTIONS REPORT
-> DDLOptions AddTranData
+> dblogin useridalias ggsource
+> edit params pump1
+```
+>> ```sh
+>> EXTRACT pump1
+>> Passthru
+>> useridalias ggsource
+>> RMTHOST 192.168.1.102 , MGRPORT 7809
+>> RMTTRAIL ./dirdat/tr
+>> TABLE VNPAYGW.TERMINALS;
+>> TABLE VNPAYGW.TNX;
+>> TABLE VNPAYGW.TNX_DETAIL;
+>> LOGALLSUPCOLS
+>> DDL INCLUDE MAPPED
+>> DDLOPTIONS REPORT
+>> DDLOptions AddTranData
 
 ```bash
 add extract pump1, exttrailsource ./dirdat/tr, begin now
@@ -278,30 +283,32 @@ add rmttrail ./dirdat/tr, extract pump1
 ```bash
 cd $OGG_HOME
 ./ggsci
-dblogin useridalias ggsource
-edit params apply1
 ```
 > ```sh
-> REPLICAT apply1
-> #DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
-> DBOPTIONS NOSUPPRESSTRIGGERS
-> #DDLOPTIONS USELOGINSCHEMA
-> DDLERROR 1435 IGNORE INCLUDE OPTYPE ALTER OBJTYPE SESSION
-> DDLERROR 2149 ignore
-> USERIDALIAS ggtarget
-> DISCARDFILE ./dirrpt/apply1.dsc,append,MEGABYTES 400
-> ASSUMETARGETDEFS
-> #SOURCEDEFS ./dirdef/source.def
-> #TARGETDEFS ./dirdef/target.def
-> HANDLECOLLISIONS
-> 
-> # Đăng ký tất cả bảng
-> MAP VNPAYGW.*, TARGET VNPAYGW.*;
-> 
-> # Đăng ký cụ thể từng bảng
-> MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
-> MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
-> MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
+> dblogin useridalias ggsource
+> edit params apply1
+```
+>> ```sh
+>> REPLICAT apply1
+>> #DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
+>> DBOPTIONS NOSUPPRESSTRIGGERS
+>> #DDLOPTIONS USELOGINSCHEMA
+>> DDLERROR 1435 IGNORE INCLUDE OPTYPE ALTER OBJTYPE SESSION
+>> DDLERROR 2149 ignore
+>> USERIDALIAS ggtarget
+>> DISCARDFILE ./dirrpt/apply1.dsc,append,MEGABYTES 400
+>> ASSUMETARGETDEFS
+>> #SOURCEDEFS ./dirdef/source.def
+>> #TARGETDEFS ./dirdef/target.def
+>> HANDLECOLLISIONS
+>> 
+>> # Đăng ký tất cả bảng
+>> MAP VNPAYGW.*, TARGET VNPAYGW.*;
+>> 
+>> # Đăng ký cụ thể từng bảng
+>> MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
+>> MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
+>> MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
 
 `add replicat apply1, integrated  exttrail ./dirdat/tr`
 
@@ -343,9 +350,10 @@ impdp directory=DUMPDIR dumpfile=dataonly.dmp logfile=dataonly.log
 ```bash
 cd $OGG_HOME
 ./ggsci
-
-start replicat apply1, aftercsn CURRENT_SCN
-info all
+```
+> ```sh
+> start replicat apply1, aftercsn CURRENT_SCN
+> info all
 ```
 
 :warning:Ngoại trừ primary key, ta nên disable tất cả constraint trên TargetDB. Có thể bỏ qua khi chỉ đồng bộ 1 chiều Uni-Directional Replication.
@@ -363,8 +371,9 @@ info all
 ```bash
 cd $OGG_HOME
 ./ggsci
-
-kill replicat apply1
-start replicat apply1
-info all
+```
+> ```sh
+> kill replicat apply1
+> start replicat apply1
+> info all
 ```
