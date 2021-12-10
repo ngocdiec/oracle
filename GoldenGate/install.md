@@ -23,7 +23,9 @@ cd /tmp/fbo_ggs_Linux_x64_shiphome/Disk1/
 ```
 
 Đặt SourceDB chạy archivelog mode:
-`sqlplus / as sysdba`
+```
+sqlplus / as sysdba
+```
 > ```sql
 > --Kiểm tra lại log mode của DB:
 > SELECT name, log_mode FROM v$database;
@@ -37,7 +39,9 @@ cd /tmp/fbo_ggs_Linux_x64_shiphome/Disk1/
 # Cấu hình các tham số cho database
 ## Trên SourceDB
 Alter database
-`sqlplus / as sysdba`
+```
+sqlplus / as sysdba
+```
 > ```sql
 > SELECT supplemental_log_data_min, force_logging FROM v$database;
 > ALTER DATABASE ADD SUPPLEMENTAL LOG DATA;
@@ -56,7 +60,9 @@ Alter database
 
 ## Trên TargetDB
 Alter database
-`sqlplus / as sysdba`
+```
+sqlplus / as sysdba
+```
 > ```sql
 > ALTER SYSTEM SET enable_goldengate_replication=TRUE SCOPE=BOTH;
 > 
