@@ -73,15 +73,13 @@ EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_ty
 cd $OGG_HOME
 sqlplus / as sysdba
 ```
-
-```sql
-@marker_setup.sql
-@ddl_setup.sql
-@role_setup.sql
-GRANT GGS_GGSUSER_ROLE TO ggadmin;
-@ddl_enable.sql
---@prvtlmpg.plb --below 12c
-```
+> ```sql
+> @marker_setup.sql
+> @ddl_setup.sql
+> @role_setup.sql
+> GRANT GGS_GGSUSER_ROLE TO ggadmin;
+> @ddl_enable.sql
+> --@prvtlmpg.plb --below 12c
 
 Tạo các thư mục cần thiết
 ```bash
@@ -106,18 +104,21 @@ Cấu hình tham số GLOBALS và MANAGER
 cd $OGG_HOME
 ./ggsci
 # GGSCI
+```
+`edit params ./GLOBALS`
+> ```sh
+> GGSCHEMA GGADMIN
+> CHECKPOINTTABLE     GGADMIN.checkpoint
 
-edit params ./GLOBALS
-GGSCHEMA GGADMIN
-CHECKPOINTTABLE     GGADMIN.checkpoint
+`edit params mgr`
+> ```sh
+> PORT 7809
+> DYNAMICPORTLIST 7810-7820
+> AUTOSTART ER *
+> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
 
-edit params mgr
-PORT 7809
-DYNAMICPORTLIST 7810-7820
-AUTOSTART ER *
-AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
-PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
-
+```
 stop mgr
 start mgr
 info all
@@ -128,15 +129,13 @@ info all
 cd $OGG_HOME
 sqlplus / as sysdba
 ```
-
-```sql
-@marker_setup.sql
-@ddl_setup.sql
-@role_setup.sql
-GRANT GGS_GGSUSER_ROLE TO ggadmin;
-@ddl_enable.sql
---@prvtlmpg.plb --below 12c
-```
+> ```sql
+> @marker_setup.sql
+> @ddl_setup.sql
+> @role_setup.sql
+> GRANT GGS_GGSUSER_ROLE TO ggadmin;
+> @ddl_enable.sql
+> --@prvtlmpg.plb --below 12c
 
 Tạo các thư mục cần thiết
 ```bash
@@ -163,19 +162,23 @@ Cấu hình tham số GLOBALS và MANAGER
 cd $OGG_HOME
 ./ggsci
 # GGSCI
+```
 
-edit params ./GLOBALS
-GGSCHEMA GGADMIN
-CHECKPOINTTABLE     GGADMIN.checkpoint
+`edit params ./GLOBALS`
+> ```sh
+> GGSCHEMA GGADMIN
+> CHECKPOINTTABLE     GGADMIN.checkpoint
 
-edit params mgr
-PORT 7809
-DYNAMICPORTLIST 7810-7820
-AUTOSTART ER *
-AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
-PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
+`    edit params mgr`
+> ```sh
+> PORT 7809
+> DYNAMICPORTLIST 7810-7820
+> AUTOSTART ER *
+> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
 
 # Restart mgr
+```
 stop mgr
 start mgr
 info all
@@ -223,86 +226,95 @@ Có một số yêu cầu mà bảng được đồng bộ phải đáp ứng:
 cd $OGG_HOME
 ./ggsci
 dblogin useridalias ggsource
-
 edit params capture1
-EXTRACT capture1
-useridalias ggsource
-EXTTRAIL ./dirdat/tr
+```
+> ```sh
+> EXTRACT capture1
+> useridalias ggsource
+> EXTTRAIL ./dirdat/tr
+> 
+> # Đăng ký tất cả bảng
+> TABLE VNPAYGW.*;
+> # Đăng ký cụ thể từng bảng
+> TABLE VNPAYGW.TNX_DETAIL;
+> # Đăng ký bảng theo điều kiện
+> TABLE VNPAYGW.TERMINALS,COLSEXCEPT(PUBLIC_KEY, PRIVATE_KEY);
+> TABLE VNPAYGW.TNX,COLSEXCEPT(CARD_NUMBER);
+> 
+> GETAPPLOPS
+> LOGALLSUPCOLS
+> UPDATERECORDFORMAT COMPACT
+> DDL INCLUDE MAPPED
+> DDLOPTIONS REPORT
+> DDLOptions AddTranData
 
-# Đăng ký tất cả bảng
-TABLE VNPAYGW.*;
-# Đăng ký cụ thể từng bảng
-TABLE VNPAYGW.TNX_DETAIL;
-# Đăng ký bảng theo điều kiện
-TABLE VNPAYGW.TERMINALS,COLSEXCEPT(PUBLIC_KEY, PRIVATE_KEY);
-TABLE VNPAYGW.TNX,COLSEXCEPT(CARD_NUMBER);
-
-GETAPPLOPS
-LOGALLSUPCOLS
-UPDATERECORDFORMAT COMPACT
-DDL INCLUDE MAPPED
-DDLOPTIONS REPORT
-DDLOptions AddTranData
-
+```bash
 register extract capture1 database
 add extract capture1, integrated tranlog, begin now
 add exttrail ./dirdat/tr, extract capture1
 ```
+
 ### Tạo tiến trình pump
 ```bash
 cd $OGG_HOME
 ./ggsci
 dblogin useridalias ggsource
-
 edit params pump1
-EXTRACT pump1
-Passthru
-useridalias ggsource
-RMTHOST 192.168.1.102 , MGRPORT 7809
-RMTTRAIL ./dirdat/tr
-TABLE VNPAYGW.TERMINALS;
-TABLE VNPAYGW.TNX;
-TABLE VNPAYGW.TNX_DETAIL;
-LOGALLSUPCOLS
-DDL INCLUDE MAPPED
-DDLOPTIONS REPORT
-DDLOptions AddTranData
+```
+> ```sh
+> EXTRACT pump1
+> Passthru
+> useridalias ggsource
+> RMTHOST 192.168.1.102 , MGRPORT 7809
+> RMTTRAIL ./dirdat/tr
+> TABLE VNPAYGW.TERMINALS;
+> TABLE VNPAYGW.TNX;
+> TABLE VNPAYGW.TNX_DETAIL;
+> LOGALLSUPCOLS
+> DDL INCLUDE MAPPED
+> DDLOPTIONS REPORT
+> DDLOptions AddTranData
 
+```bash
 add extract pump1, exttrailsource ./dirdat/tr, begin now
 add rmttrail ./dirdat/tr, extract pump1
 ```
 
 ## Trên TargetDB
 ### Tạo tiến trình replicat
+
 ```bash
 cd $OGG_HOME
 ./ggsci
 dblogin useridalias ggsource
-
 edit params apply1
-REPLICAT apply1
-#DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
-DBOPTIONS NOSUPPRESSTRIGGERS
-#DDLOPTIONS USELOGINSCHEMA
-DDLERROR 1435 IGNORE INCLUDE OPTYPE ALTER OBJTYPE SESSION
-DDLERROR 2149 ignore
-USERIDALIAS ggtarget
-DISCARDFILE ./dirrpt/apply1.dsc,append,MEGABYTES 400
-ASSUMETARGETDEFS
-#SOURCEDEFS ./dirdef/source.def
-#TARGETDEFS ./dirdef/target.def
-HANDLECOLLISIONS
-
-# Đăng ký tất cả bảng
-MAP VNPAYGW.*, TARGET VNPAYGW.*;
-
-# Đăng ký cụ thể từng bảng
-MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
-MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
-MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
-
-add replicat apply1, integrated  exttrail ./dirdat/tr
 ```
+> ```sh
+> REPLICAT apply1
+> #DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
+> DBOPTIONS NOSUPPRESSTRIGGERS
+> #DDLOPTIONS USELOGINSCHEMA
+> DDLERROR 1435 IGNORE INCLUDE OPTYPE ALTER OBJTYPE SESSION
+> DDLERROR 2149 ignore
+> USERIDALIAS ggtarget
+> DISCARDFILE ./dirrpt/apply1.dsc,append,MEGABYTES 400
+> ASSUMETARGETDEFS
+> #SOURCEDEFS ./dirdef/source.def
+> #TARGETDEFS ./dirdef/target.def
+> HANDLECOLLISIONS
+> 
+> # Đăng ký tất cả bảng
+> MAP VNPAYGW.*, TARGET VNPAYGW.*;
+> 
+> # Đăng ký cụ thể từng bảng
+> MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
+> MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
+> MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
+
+`add replicat apply1, integrated  exttrail ./dirdat/tr`
+
+
+
 ---
 # Khởi tạo đồng bộ GoldenGate - No downtime
 ## Đồng bộ metadata từ SourceDB sang TargetDB
