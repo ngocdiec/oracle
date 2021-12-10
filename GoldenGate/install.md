@@ -134,52 +134,45 @@ sqlplus / as sysdba
 > @ddl_enable.sql
 > --@prvtlmpg.plb --below 12c
 
-Tạo các thư mục cần thiết
-```bash
-cd $OGG_HOME
-./ggsci
-create subdirs
-```
-
-Tạo credentialstore
+Thiết lập các tham số cần thiết
 ```bash
 cd $OGG_HOME
 ./ggsci
 ```
 > ```sh
+> create subdirs
+> 
+> # Tạo credentialstore
 > add credentialstore
 > alter credentialstore add user ggadmin@mms alias ggtarget
 > info credentialstore
-```
-# test credentialstore
-dblogin useridalias ggtarget
-```
-
-Cấu hình tham số GLOBALS và MANAGER
-```bash
-cd $OGG_HOME
-./ggsci
-```
-
-`edit params ./GLOBALS`
+> 
+> # test credentialstore
+> dblogin useridalias ggtarget
+> 
+> # Cấu hình tham số GLOBALS và MANAGER
+> edit params ./GLOBALS
+> ```
+>> ```sh 
+>> GGSCHEMA GGADMIN
+>> CHECKPOINTTABLE     GGADMIN.checkpoint
+>> ```
 > ```sh
-> GGSCHEMA GGADMIN
-> CHECKPOINTTABLE     GGADMIN.checkpoint
-
-`    edit params mgr`
+> edit params mgr
+> ```
+>> ```sh 
+>> PORT 7809
+>> DYNAMICPORTLIST 7810-7820
+>> AUTOSTART ER *
+>> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+>> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
+>> ```
 > ```sh
-> PORT 7809
-> DYNAMICPORTLIST 7810-7820
-> AUTOSTART ER *
-> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
-> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
-
-# Restart mgr
-```
-stop mgr
-start mgr
-info all
-```
+> # Restart mgr
+> stop mgr
+> start mgr
+> info all
+> ```
 ---
 # Tạo các tiến trình đồng bộ cho GoldenGate
 ## Trên SourceDB
@@ -238,12 +231,11 @@ cd $OGG_HOME
 >> DDLOPTIONS REPORT
 >> DDLOptions AddTranData
 >> ```
-
-```bash
-register extract capture1 database
-add extract capture1, integrated tranlog, begin now
-add exttrail ./dirdat/tr, extract capture1
-```
+> ```sh
+> register extract capture1 database
+> add extract capture1, integrated tranlog, begin now
+> add exttrail ./dirdat/tr, extract capture1
+> ```
 
 ### Tạo tiến trình pump
 ```bash
@@ -253,7 +245,7 @@ cd $OGG_HOME
 > ```sh
 > dblogin useridalias ggsource
 > edit params pump1
-```
+> ```
 >> ```sh
 >> EXTRACT pump1
 >> Passthru
@@ -267,11 +259,11 @@ cd $OGG_HOME
 >> DDL INCLUDE MAPPED
 >> DDLOPTIONS REPORT
 >> DDLOptions AddTranData
-
-```bash
-add extract pump1, exttrailsource ./dirdat/tr, begin now
-add rmttrail ./dirdat/tr, extract pump1
-```
+>> ```
+> ```sh
+> add extract pump1, exttrailsource ./dirdat/tr, begin now
+> add rmttrail ./dirdat/tr, extract pump1
+> ```
 
 ## Trên TargetDB
 ### Tạo tiến trình replicat
@@ -283,7 +275,7 @@ cd $OGG_HOME
 > ```sh
 > dblogin useridalias ggsource
 > edit params apply1
-```
+> ```
 >> ```sh
 >> REPLICAT apply1
 >> #DBOPTIONS INTEGRATEDPARAMS(parallelism 8)
@@ -305,8 +297,10 @@ cd $OGG_HOME
 >> MAP VNPAYGW.TERMINALS ,TARGET VNPAYGW.TERMINALS;
 >> MAP VNPAYGW.TNX ,TARGET VNPAYGW.TNX;
 >> MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
-
-`add replicat apply1, integrated  exttrail ./dirdat/tr`
+>> ```
+> ```sh
+> add replicat apply1, integrated  exttrail ./dirdat/tr
+> ```
 
 
 
@@ -324,19 +318,24 @@ impdp directory=DUMPDIR dumpfile=meta.dmp logfile=meta.log
 ```bash
 cd $OGG_HOME
 ./ggsci
-
-start extract capture1
-start extract pump1
-info all
 ```
+> ```sh
+> start extract capture1
+> start extract pump1
+> info all
+> ```
 
 ## Kiểm tra số SCN hiện tại trên SourceDB
 ```sql
 SELECT TO_CHAR (current_scn) FROM v$database;
 ```
+> ```sql
+> 20073517769
+> ```
+
 ## Tiến hành export data only sau khi có thông tin current SCN trên SourceDB
 ```bash
-expdp directory=DUMPDIR dumpfile=dataonly.dmp logfile=dataonly.log schemas=VNPAYGW content=DATA_ONLY flashback_scn=CURRENT_SCN
+expdp directory=DUMPDIR dumpfile=dataonly.dmp logfile=dataonly.log schemas=VNPAYGW content=DATA_ONLY flashback_scn=20073517769
 ```
 ## import data vừa được export vào TargetDB
 ```bash
@@ -348,9 +347,9 @@ cd $OGG_HOME
 ./ggsci
 ```
 > ```sh
-> start replicat apply1, aftercsn CURRENT_SCN
+> start replicat apply1, aftercsn 20073517769
 > info all
-```
+> ```
 
 :warning:Ngoại trừ primary key, ta nên disable tất cả constraint trên TargetDB. Có thể bỏ qua khi chỉ đồng bộ 1 chiều Uni-Directional Replication.
 
@@ -372,4 +371,4 @@ cd $OGG_HOME
 > kill replicat apply1
 > start replicat apply1
 > info all
-```
+> ```
