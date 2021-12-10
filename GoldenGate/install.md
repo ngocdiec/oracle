@@ -83,21 +83,16 @@ sqlplus / as sysdba
 > --@prvtlmpg.plb --below 12c
 > ```
 
-Tạo các thư mục cần thiết
+Thiết lập một số tham số
 ```bash
 cd $OGG_HOME
 ./ggsci
 ```
 > ```sh
+> # Tạo các thư mục cần thiết
 > create subdirs
-> ```
-
-Tạo credentialstore
-```
-cd $OGG_HOME
-./ggsci
-```
-> ```sh
+> 
+> # Tạo credentialstore
 > add credentialstore
 > alter credentialstore add user ggadmin@mms alias ggsource
 > info credentialstore
