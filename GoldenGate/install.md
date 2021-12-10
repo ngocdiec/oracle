@@ -88,14 +88,16 @@ cd $OGG_HOME
 create subdirs
 ```
 Tạo credentialstore
-```bash
+```console
 cd $OGG_HOME
 ./ggsci
-# GGSCI
-add credentialstore
-alter credentialstore add user ggadmin@mms alias ggsource
-info credentialstore
+```
+> ```sh
+> add credentialstore
+> alter credentialstore add user ggadmin@mms alias ggsource
+> info credentialstore
 
+```
 # test credentialstore
 dblogin useridalias ggsource
 ```
@@ -103,7 +105,6 @@ Cấu hình tham số GLOBALS và MANAGER
 ```bash
 cd $OGG_HOME
 ./ggsci
-# GGSCI
 ```
 `edit params ./GLOBALS`
 > ```sh
@@ -148,11 +149,12 @@ Tạo credentialstore
 ```bash
 cd $OGG_HOME
 ./ggsci
-# GGSCI
-add credentialstore
-alter credentialstore add user ggadmin@mms alias ggtarget
-info credentialstore
-
+```
+> ```sh
+> add credentialstore
+> alter credentialstore add user ggadmin@mms alias ggtarget
+> info credentialstore
+```
 # test credentialstore
 dblogin useridalias ggtarget
 ```
@@ -161,7 +163,6 @@ Cấu hình tham số GLOBALS và MANAGER
 ```bash
 cd $OGG_HOME
 ./ggsci
-# GGSCI
 ```
 
 `edit params ./GLOBALS`
@@ -191,32 +192,23 @@ Có thể đăng ký tất các các table trong schema, hoặc chỉ định ri
 ```bash
 cd $OGG_HOME
 ./ggsci
-dblogin useridalias ggsource
 ```
+> ```sh
+> dblogin useridalias ggsource
+> 
+> # Đăng ký theo schema (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
+> add schematrandata SCHEMA_NAME
+> 
+> # Đăng ký theo table (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
+> # add tất cả các columns của table
+> add trandata TABLE_NAME
+> # add và chỉ định một số column
+> add trandata TABLE_NAME COLS(colums)
+> # add và loại trừ một số column
+> add trandata TABLE_NAME COLSEXCEPT(colums)
+> # add và chỉ định table không có PK
+> add trandata TABLE_NAME NOKEY
 
-```diff
-- text in red
-+ text in green
-! text in orange
-# text in gray
-@@ text in purple (and bold)@@
-```
-Đăng ký theo schema (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
-```bash
-add schematrandata SCHEMA_NAME
-```
-
-Đăng ký theo table (:warning: lưu ý thay SCHEMA_NAME bằng schema name thực tế)
-```bash
-# add tất cả các columns của table
-add trandata TABLE_NAME
-# add và chỉ định một số column
-add trandata TABLE_NAME COLS(colums)
-# add và loại trừ một số column
-add trandata TABLE_NAME COLSEXCEPT(colums)
-# add và chỉ định table không có PK
-add trandata TABLE_NAME NOKEY
-```
 Có một số yêu cầu mà bảng được đồng bộ phải đáp ứng:
 1. Bảng nên có Primary Key (PK), nếu không có PK thì có thể sử dụng column có độ distinct cao, tuy nhiên có thể phát sinh lỗi đồng bộ
 2. Không được update column là PK.
