@@ -1,3 +1,4 @@
+---
 # Cài đặt GoldenGate Software
 Đẩy bộ cài GoldenGate lên server của cả SourceDB và TargetDB
 ```bash
@@ -31,7 +32,7 @@ STARTUP mount;
 ALTER DATABASE ARCHIVELOG;
 ALTER DATABASE OPEN;
 ```
-
+---
 # Cấu hình các tham số cho database
 ## Trên SourceDB
 Alter database
@@ -64,6 +65,7 @@ CREATE USER ggadmin IDENTIFIED BY "ggadmin"   DEFAULT TABLESPACE TS_OGG TEMPORAR
 GRANT CREATE SESSION, CONNECT, RESOURCE, ALTER SYSTEM TO ggadmin;
 EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_type=>'APPLY', grant_optional_privileges=>'*');
 ```
+---
 # Cấu hình các tham số cho GoldenGate
 ## Khởi tạo GoldenGate
 ### Trên SourceDB
@@ -178,7 +180,7 @@ stop mgr
 start mgr
 info all
 ```
-
+---
 # Tạo các tiến trình đồng bộ cho GoldenGate
 ## Trên SourceDB
 ### Đăng ký dữ liệu cần đồng bộ
@@ -301,7 +303,7 @@ MAP VNPAYGW.TNX_DETAIL ,TARGET VNPAYGW.TNX_DETAIL;
 
 add replicat apply1, integrated  exttrail ./dirdat/tr
 ```
-
+---
 # Khởi tạo đồng bộ GoldenGate - No downtime
 ## Đồng bộ metadata từ SourceDB sang TargetDB
 ```bash
