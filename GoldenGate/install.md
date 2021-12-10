@@ -1,12 +1,12 @@
 ---
 # Cài đặt GoldenGate Software
 Đẩy bộ cài GoldenGate lên server của cả SourceDB và TargetDB
-```bash
+```console
 scp 191001_fbo_ggs_Linux_x64_shiphome.zip oracle@goldengate:/tmp
 ```
 
 Login vào server bằng user oracle và thực hiện các lệnh sau
-```bash
+```console
 su - oracle
 cd /tmp
 unzip 191001_fbo_ggs_Linux_x64_shiphome.zip
@@ -23,48 +23,49 @@ cd /tmp/fbo_ggs_Linux_x64_shiphome/Disk1/
 ```
 
 Đặt SourceDB chạy archivelog mode:
-```sql
---Kiểm tra lại log mode của DB:
-SELECT name, log_mode FROM v$database;
-
-SHUTDOWN immediate;
-STARTUP mount;
-ALTER DATABASE ARCHIVELOG;
-ALTER DATABASE OPEN;
-```
+`sqlplus / as sysdba`
+> ```sql
+> --Kiểm tra lại log mode của DB:
+> SELECT name, log_mode FROM v$database;
+> 
+> SHUTDOWN immediate;
+> STARTUP mount;
+> ALTER DATABASE ARCHIVELOG;
+> ALTER DATABASE OPEN;
+> ```
 ---
 # Cấu hình các tham số cho database
 ## Trên SourceDB
 Alter database
-```sql
-SELECT supplemental_log_data_min, force_logging FROM v$database;
-ALTER DATABASE ADD SUPPLEMENTAL LOG DATA;
-ALTER DATABASE FORCE LOGGING;
-ALTER SYSTEM SWITCH LOGFILE;
-SELECT supplemental_log_data_min, force_logging FROM v$database;
-ALTER SYSTEM SET enable_goldengate_replication=TRUE SCOPE=BOTH;
-```
-Tạo user và tablespace cho GoldenGate
-```sql
-CREATE TABLESPACE TS_OGG DATAFILE '/data/MMS/TS_OGG.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE UNLIMITED;
-CREATE USER ggadmin IDENTIFIED BY "ggadmin" DEFAULT TABLESPACE TS_OGG TEMPORARY TABLESPACE TEMP PROFILE DEFAULT ACCOUNT UNLOCK;
-GRANT CREATE SESSION, CONNECT, RESOURCE, ALTER SYSTEM TO ggadmin;
-EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_type=>'CAPTURE', grant_optional_privileges=>'*');
-```
+`sqlplus / as sysdba`
+> ```sql
+> SELECT supplemental_log_data_min, force_logging FROM v$database;
+> ALTER DATABASE ADD SUPPLEMENTAL LOG DATA;
+> ALTER DATABASE FORCE LOGGING;
+> ALTER SYSTEM SWITCH LOGFILE;
+> SELECT supplemental_log_data_min, force_logging FROM v$database;
+> ALTER SYSTEM SET enable_goldengate_replication=TRUE SCOPE=BOTH;
+> 
+> --Tạo user và tablespace cho GoldenGate
+> CREATE TABLESPACE TS_OGG DATAFILE '/data/MMS/TS_OGG.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE UNLIMITED;
+> CREATE USER ggadmin IDENTIFIED BY "ggadmin" DEFAULT TABLESPACE TS_OGG TEMPORARY TABLESPACE TEMP PROFILE DEFAULT ACCOUNT UNLOCK;
+> GRANT CREATE SESSION, CONNECT, RESOURCE, ALTER SYSTEM TO ggadmin;
+> EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_type=>'CAPTURE', grant_optional_privileges=>'*');
+> ```
 
 
 ## Trên TargetDB
 Alter database
-```sql
-ALTER SYSTEM SET enable_goldengate_replication=TRUE SCOPE=BOTH;
-```
-Tạo user và tablespace cho GoldenGate
-```sql
-CREATE TABLESPACE TS_OGG DATAFILE '/data/GG4BD/TS_OGG.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE UNLIMITED;
-CREATE USER ggadmin IDENTIFIED BY "ggadmin"   DEFAULT TABLESPACE TS_OGG TEMPORARY TABLESPACE TEMP PROFILE DEFAULT ACCOUNT UNLOCK;
-GRANT CREATE SESSION, CONNECT, RESOURCE, ALTER SYSTEM TO ggadmin;
-EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_type=>'APPLY', grant_optional_privileges=>'*');
-```
+`sqlplus / as sysdba`
+> ```sql
+> ALTER SYSTEM SET enable_goldengate_replication=TRUE SCOPE=BOTH;
+> 
+> --Tạo user và tablespace cho GoldenGate
+> CREATE TABLESPACE TS_OGG DATAFILE '/data/GG4BD/TS_OGG.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE UNLIMITED;
+> CREATE USER ggadmin IDENTIFIED BY "ggadmin"   DEFAULT TABLESPACE TS_OGG TEMPORARY TABLESPACE TEMP PROFILE DEFAULT ACCOUNT UNLOCK;
+> GRANT CREATE SESSION, CONNECT, RESOURCE, ALTER SYSTEM TO ggadmin;
+> EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(grantee=>'ggadmin', privilege_type=>'APPLY', grant_optional_privileges=>'*');
+> ```
 ---
 # Cấu hình các tham số cho GoldenGate
 ## Khởi tạo GoldenGate
@@ -80,15 +81,19 @@ sqlplus / as sysdba
 > GRANT GGS_GGSUSER_ROLE TO ggadmin;
 > @ddl_enable.sql
 > --@prvtlmpg.plb --below 12c
+> ```
 
 Tạo các thư mục cần thiết
 ```bash
 cd $OGG_HOME
 ./ggsci
-create subdirs
 ```
+> ```sh
+> create subdirs
+> ```
+
 Tạo credentialstore
-```console
+```
 cd $OGG_HOME
 ./ggsci
 ```
@@ -96,34 +101,30 @@ cd $OGG_HOME
 > add credentialstore
 > alter credentialstore add user ggadmin@mms alias ggsource
 > info credentialstore
-
-```
-# test credentialstore
-dblogin useridalias ggsource
-```
-Cấu hình tham số GLOBALS và MANAGER
-```bash
-cd $OGG_HOME
-./ggsci
-```
-`edit params ./GLOBALS`
+> # test credentialstore
+> dblogin useridalias ggsource
+> 
+> edit params ./GLOBALS
+> ```
+>> ```sh
+>> GGSCHEMA GGADMIN
+>> CHECKPOINTTABLE     GGADMIN.checkpoint
+>> ```
 > ```sh
-> GGSCHEMA GGADMIN
-> CHECKPOINTTABLE     GGADMIN.checkpoint
-
-`edit params mgr`
-> ```sh
-> PORT 7809
-> DYNAMICPORTLIST 7810-7820
-> AUTOSTART ER *
-> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
-> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
-
-```
-stop mgr
-start mgr
-info all
-```
+> edit params mgr
+> ```
+>> ```sh
+>> PORT 7809
+>> DYNAMICPORTLIST 7810-7820
+>> AUTOSTART ER *
+>> AUTORESTART ER *, RETRIES 16, WAITMINUTES 4
+>> PURGEOLDEXTRACTS ./dirdat/*, USECHECKPOINTS, MINKEEPHOURS 2
+>> ```
+>  ```sh
+> stop mgr
+> start mgr
+> info all
+> ```
 
 ### Trên TargetDB
 ```bash
