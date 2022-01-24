@@ -9,4 +9,6 @@ Indexs
 ---
 Ref:
 https://satya-dba.blogspot.com/
+
+Oracle Learning
 https://www.youtube.com/channel/UCpcndhe5IebWrJrdLRGRsvw
