@@ -15,3 +15,6 @@ https://www.youtube.com/channel/UCpcndhe5IebWrJrdLRGRsvw
 
 The Magic of SQL
 https://www.youtube.com/c/TheMagicofSQL
+
+Connor McDonald
+https://www.youtube.com/channel/UCVN7PnJnuKQ65QLmWjFvhiw
