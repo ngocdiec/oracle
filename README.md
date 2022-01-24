@@ -12,3 +12,6 @@ https://satya-dba.blogspot.com/
 
 Oracle Learning
 https://www.youtube.com/channel/UCpcndhe5IebWrJrdLRGRsvw
+
+The Magic of SQL
+https://www.youtube.com/c/TheMagicofSQL
