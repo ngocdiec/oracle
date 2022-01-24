@@ -9,3 +9,4 @@ Indexs
 ---
 Ref:
 https://satya-dba.blogspot.com/
+https://www.youtube.com/channel/UCpcndhe5IebWrJrdLRGRsvw
